@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- sku blank structure and action -->
+    <record id="action_supplysync_sku" model="ir.actions.act_window">
+        <field name="name">Bagallery SKU</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">supplysync.sku</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Import your data from .csv
+            </p>
+        </field>
+    </record>
+
+    <!-- sku form structure -->
+    <record id="supplysync_sku_view_form" model="ir.ui.view">
+        <field name="name">supplysync.sku.form</field>
+        <field name="model">supplysync.sku</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="sku"/>
+                        <field name="type"/>
+                        <field name="rank"/>
+                    </group>
+                    <group>
+                        <field name="category_L1"/>
+                        <field name="category_L2"/>
+                        <field name="vendor"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- sku tree structure -->
+    <record id="supplysync_sku_view_tree" model="ir.ui.view">
+        <field name="name">supplysync.sku.tree</field>
+        <field name="model">supplysync.sku</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sku"/>
+                <field name="type"/>
+                <field name="rank"/>
+                <field name="category_L1"/>
+                <field name="category_L2"/>
+                <field name="vendor"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- sku search functionality -->
+    <record id="supplysync_sku_search" model="ir.ui.view">
+        <field name="name">supplysync.sku.search</field>
+        <field name="model">supplysync.sku</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="sku"/>
+                <field name="type"/>
+                <field name="rank"/>
+                <field name="category_L1"/>
+                <field name="category_L2"/>
+                <field name="vendor"/>
+                <filter name="filter_skus" string="Top 100" domain="[('rank', '&lt;=', 100)]"/>
+            </search>
+        </field>
+    </record>
+
+<!-- Scheduled action for auto csv fetch -->
+    <data noupdate="1">
+        <record id="ir_cron_import_sku_csv_job" model="ir.cron">
+            <field name="name">Import SKU Data from CSV</field>
+            <field name="user_id" ref="base.user_root"/>  <!-- Runs as Administrator -->
+            <field name="active" eval="True"/>  <!-- Cron job is active -->
+            <field name="model_id" ref="model_supplysync_sku"/>  <!-- Model on which the method is called -->
+            <field name="state">code</field>
+            <field name="code">model.import_data_from_csv()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>  <!-- -1 means the job will repeat indefinitely -->
+            <field name="doall" eval="False"/>  <!-- Do not run all missed occurrences if server restarts -->
+        </record>
+    </data>
+
+    <!-- Scheduled action for model run -->
+    <data noupdate="1">
+        <record id="ir_cron_model_run_job" model="ir.cron">
+            <field name="name">Run Model</field>
+            <field name="user_id" ref="base.user_root"/>  <!-- Runs as Administrator -->
+            <field name="active" eval="True"/>  <!-- Cron job is active -->
+            <field name="model_id" ref="model_supplysync_sku"/>  <!-- Model on which the method is called -->
+            <field name="state">code</field>
+            <field name="code">model.run_model()</field>
+            <field name="interval_number">50</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>  <!-- -1 means the job will repeat indefinitely -->
+            <field name="doall" eval="False"/>  <!-- Do not run all missed occurrences if server restarts -->
+        </record>
+    </data>
+
+</odoo>

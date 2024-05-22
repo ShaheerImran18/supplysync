@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Odoo 15 view -->
+<record id="view_supplysync_sku_tree" model="ir.ui.view">
+    <field name="name">supplysync.sku.tree</field>
+    <field name="model">supplysync.sku</field>
+    <field name="arch" type="xml">
+        <tree>
+<!--            <field name="order_date"/>-->
+            <field name="sku"/>
+<!--            <field name="selling_price"/>-->
+            <field name="type"/>
+<!--            <field name="price_before_discount"/>-->
+<!--            <field name="quantity_sold"/>-->
+            <field name="category_L1"/>
+            <field name="category_L2"/>
+            <field name="vendor"/>
+        </tree>
+    </field>
+</record>
+
+<record id="view_supplysync_forecast_tree" model="ir.ui.view">
+    <field name="name">supplysync.forecast.tree</field>
+    <field name="model">supplysync.forecast</field>
+    <field name="arch" type="xml">
+        <tree>
+            <field name="sku_id"/>
+            <field name="forecasted_quantity"/>
+            <field name="forecasted_date"/>
+        </tree>
+    </field>
+</record>
+</odoo>
