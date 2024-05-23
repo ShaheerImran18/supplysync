@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Server action that runs the cron job -->
+    <record id="forecast_action_run_model" model="ir.actions.server">
+        <field name="name">Run Forecast Model</field>
+        <field name="model_id" ref="model_supplysync_forecast"/>
+        <field name="state">code</field>
+        <field name="code">
+            env.ref('supplysync.ir_cron_model_run_job').method_direct_trigger()
+        </field>
+    </record>
+
+
+    <!-- forecast blank structure and action -->
+    <record id="action_supplysync_forecast" model="ir.actions.act_window">
+        <field name="name">Model configs</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">supplysync.forecast</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Set your configs via form.
+            </p>
+        </field>
+    </record>
+
+    <!-- config form structure -->
+    <record id="supplysync_forecast_view_form" model="ir.ui.view">
+        <field name="name">supplysync.forecast.form</field>
+        <field name="model">supplysync.forecast</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="configID" help="Enter the configuration ID."/>
+                        <field name="test_start_year" help="Enter the start year as 'yyyy'."/>
+                        <field name="train_end_year" help="Enter the end year as 'yyyy'."/>
+                    </group>
+                    <button name="%(forecast_action_run_model)d" type="action" string="Run Model"
+                            attrs="{'invisible': [('id', '=', False)]}"/>
+                    <group>
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- forecast tree structure -->
+    <record id="supplysync_forecast_view_tree" model="ir.ui.view">
+        <field name="name">supplysync.forecast.tree</field>
+        <field name="model">supplysync.forecast</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="configID"/>
+                <field name="train_end_year"/>
+                <field name="test_start_year"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>

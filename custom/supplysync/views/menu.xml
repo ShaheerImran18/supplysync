@@ -9,16 +9,18 @@
     <menuitem id="SupplySync_submenu_forecast"
               name="Forecast"
               parent="SupplySync_menu_root"
-              sequence="1"/>
-
-    <menuitem id="forecast_submenu_sku"
-              name="SKUs"
-              parent="SupplySync_submenu_forecast"
               action="action_supplysync_sku"
               sequence="1"/>
+
+<!--    <menuitem id="forecast_submenu_sku"-->
+<!--              name="SKUs"-->
+<!--              parent="SupplySync_submenu_forecast"-->
+<!--              action="action_supplysync_sku"-->
+<!--              sequence="1"/>-->
 
     <menuitem id="SupplySync_submenu_modeltrain"
               name="Model Training"
               parent="SupplySync_menu_root"
+              action="action_supplysync_forecast"
               sequence="2"/>
 </odoo>

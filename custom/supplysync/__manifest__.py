@@ -15,6 +15,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/sku.xml",
+        "views/forecast.xml",
         "views/menu.xml",
     ],
     # "assets": {

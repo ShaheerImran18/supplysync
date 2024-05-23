@@ -182,26 +182,17 @@ class Sku(models.Model):
                              'rank': int(row['rank'])
                              })
 
+class ForecastConfig(models.Model):
+    _name = "supplysync.forecast"
+    _description = "Forecast Configuration"
 
-@api.depends(
-    "sku",
-    "order_date",
-    "quantity_sold",
-    "selling_price",
-    "price_before_discount",
-    "type",
-    "category_L1",
-    "category_L2",
-    "vendor",
-    "rank",
-)
-def get_sku(self):
-    """
-    This method should return the SKU data from the database.
-    """
-    for _ in self:
-        # Your get data logic here
-        pass
+    configID = fields.Integer()
+    train_end_year = fields.Integer("Training End Year")
+    test_start_year = fields.Integer("Testing Start Year")
+
+    _sql_constraints = [
+        ('configID_unique', 'UNIQUE(configID)', 'The Configuration ID must be unique.')
+    ]
 
 # class Forecast(models.Model):
 #     _name = "supplysync.forecast"
