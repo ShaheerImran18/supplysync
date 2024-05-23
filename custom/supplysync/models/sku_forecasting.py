@@ -1,6 +1,8 @@
+import os
 import csv
 import pandas as pd
 import numpy as np
+import pickle
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
@@ -77,19 +79,10 @@ class Sku(models.Model):
             sequence_length = 12
             x_train, y_train = create_sequences(train_normalized, sequence_length)
 
-            # Define LSTM model
-            model = Sequential([
-                LSTM(units=100, return_sequences=True, input_shape=(x_train.shape[1], x_train.shape[2])),
-                Dropout(0.2),  # Added dropout layer
-                LSTM(units=50),
-                Dense(units=1)
-            ])
 
-            # Compile model
-            model.compile(optimizer=Adam(), loss='mean_squared_error')
-
-            # Fit model
-            model.fit(x_train, y_train, epochs=50, batch_size=32, verbose=0)
+            root_path = os.path.join('custom', 'supplysync', 'models')
+            with open(os.path.join(root_path, 'lstm.pickle'), 'rb') as file:
+                model = pickle.load(file)
 
             # Forecast using LSTM model
             forecasted_values_lstm = []
@@ -119,9 +112,9 @@ class Sku(models.Model):
             x_train_svm = scaler_svm.fit_transform(x_train_svm)
             x_test_svm = scaler_svm.transform(x_test_svm)
 
-            # Train SVM model
-            svm_model = SVR(kernel='rbf')
-            svm_model.fit(x_train_svm, y_train_svm)
+            root_path = os.path.join('custom', 'supplysync', 'models')
+            with open(os.path.join(root_path, 'svm.pickle'), 'rb') as file:
+                svm_model = pickle.load(file)
 
             # Forecast using SVM model
             forecasted_values_svm = svm_model.predict(x_test_svm).reshape(-1, 1)
@@ -219,3 +212,82 @@ class ForecastConfig(models.Model):
         end_ye = str(record.train_end_year)
         print(start_ye, end_ye)
         return record
+
+    @api.model
+    def train_model(self, ids):
+        # Load your data into a pandas dataframe
+        df = pd.read_csv("custom/supplysync/models/train.csv")
+
+        # Convert the 'week' column to datetime format
+        df['week'] = pd.to_datetime(df['week'], format='%d/%m/%y')
+
+        # Group data monthly and calculate monthly quantity sold per sku (sum the units sold)
+        monthly_data = df.groupby(['sku_id', df['week'].dt.to_period('M')])['units_sold'].sum()
+
+        # Reset index to access sku_id and week as columns
+        monthly_data = monthly_data.reset_index()
+
+        # Separate data into train (2011 and 2012) and test (2013)
+        train_data = monthly_data[monthly_data['week'] < start_ye]
+        test_data = monthly_data[monthly_data['week'] >= end_ye]
+
+        # Function to create sequences for LSTM
+        def create_sequences(data, sequence_length):
+            x, y = [], []
+            for i in range(len(data) - sequence_length):
+                x.append(data[i:(i + sequence_length)])
+                y.append(data[i + sequence_length])
+            return np.array(x), np.array(y)
+
+        # Iterate over unique sku_ids
+        for sku_id in monthly_data['sku_id'].unique():
+            # Filter train and test data for the current sku_id
+            train_sku_data = train_data[train_data['sku_id'] == sku_id]
+            test_sku_data = test_data[test_data['sku_id'] == sku_id]
+
+            if len(test_sku_data) == 0 or len(train_sku_data) == 0:
+                continue  # Skip if there's no test data or train data for this SKU
+
+            # Normalize data for LSTM
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            train_normalized = scaler.fit_transform(train_sku_data['units_sold'].values.reshape(-1, 1))
+
+            # Prepare data for LSTM
+            sequence_length = 12
+            x_train, y_train = create_sequences(train_normalized, sequence_length)
+
+            # Define LSTM models
+            model = Sequential([
+                LSTM(units=100, return_sequences=True, input_shape=(x_train.shape[1], x_train.shape[2])),
+                Dropout(0.2),  # Added dropout layer
+                LSTM(units=50),
+                Dense(units=1)
+            ])
+
+            # Compile model
+            model.compile(optimizer=Adam(), loss='mean_squared_error')
+
+            # Fit model
+            model.fit(x_train, y_train, epochs=50, batch_size=32, verbose=0)
+
+            root_path = os.path.join('custom', 'supplysync', 'models')
+            with open(os.path.join(root_path, 'lstm.pickle'), 'wb+') as file:
+                pickle.dump(model, file)
+
+            # Prepare data for SVM
+            x_train_svm = train_sku_data['units_sold'].values[:-1].reshape(-1, 1)
+            y_train_svm = train_sku_data['units_sold'].values[1:]
+            x_test_svm = test_sku_data['units_sold'].values.reshape(-1, 1)  # Corrected this to use all test data points
+
+            # Normalize data for SVM
+            scaler_svm = StandardScaler()
+            x_train_svm = scaler_svm.fit_transform(x_train_svm)
+            x_test_svm = scaler_svm.transform(x_test_svm)
+
+            # Train SVM model
+            svm_model = SVR(kernel='rbf')
+            svm_model.fit(x_train_svm, y_train_svm)
+
+            root_path = os.path.join('custom', 'supplysync', 'models')
+            with open(os.path.join(root_path, 'svm.pickle'), 'wb+') as file:
+                pickle.dump(model, file)

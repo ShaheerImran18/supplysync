@@ -37,11 +37,16 @@
                         <field name="test_start_year" help="Enter the start year as 'yyyy'."/>
                         <field name="train_end_year" help="Enter the end year as 'yyyy'."/>
                     </group>
-                    <button name="%(forecast_action_run_model)d" type="action" string="Run Model"
-                            attrs="{'invisible': [('id', '=', False)]}"/>
 
                     <button name="set_config" type="object" string="Load Config"
                             attrs="{'invisible': [('id', '=', False)]}"/>
+
+                    <button name="train_model" type="object" string="Train Model"
+                            attrs="{'invisible': [('id', '=', False)]}"/>
+
+                    <button name="%(forecast_action_run_model)d" type="action" string="Run Model"
+                            attrs="{'invisible': [('id', '=', False)]}"/>
+
                     <group>
 
                     </group>
