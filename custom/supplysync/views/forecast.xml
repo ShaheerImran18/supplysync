@@ -34,7 +34,7 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="configID" help="Enter the configuration ID."/>
+                        <field name="configid" help="Enter the configuration ID."/>
                         <field name="test_start_year" help="Enter the start year as 'yyyy'."/>
                         <field name="train_end_year" help="Enter the end year as 'yyyy'."/>
                     </group>
@@ -54,7 +54,7 @@
         <field name="model">supplysync.forecast</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="configID"/>
+                <field name="configid"/>
                 <field name="train_end_year"/>
                 <field name="test_start_year"/>
             </tree>

@@ -182,17 +182,34 @@ class Sku(models.Model):
                              'rank': int(row['rank'])
                              })
 
+
 class ForecastConfig(models.Model):
     _name = "supplysync.forecast"
     _description = "Forecast Configuration"
 
-    configID = fields.Integer()
+    configid = fields.Integer("Config ID")
     train_end_year = fields.Integer("Training End Year")
     test_start_year = fields.Integer("Testing Start Year")
 
     _sql_constraints = [
-        ('configID_unique', 'UNIQUE(configID)', 'The Configuration ID must be unique.')
+        ('configID_unique', 'unique(configid)', 'The Configuration ID must be unique.')
     ]
+
+    @api.model
+    def create(self, vals):
+        # First, call the super to create the record
+        record = super(ForecastConfig, self).create(vals)
+
+        # Specify the file path where the CSV will be saved
+        file_path = 'custom/supplysync/models/config.csv'  # Assumes the file is in the same directory as this script
+
+        # Open the file and overwrite the existing data
+        with open(file_path, mode='w', newline='') as file:  # Note 'w' mode here
+            writer = csv.writer(file)
+            writer.writerow(['configid', 'test_start_year', 'train_end_year'])  # Headers
+            writer.writerow([record.configid, record.test_start_year, record.train_end_year])
+
+        return record
 
 # class Forecast(models.Model):
 #     _name = "supplysync.forecast"
