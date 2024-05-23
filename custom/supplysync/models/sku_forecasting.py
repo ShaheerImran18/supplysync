@@ -9,6 +9,9 @@ from sklearn.svm import SVR
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, r2_score
 from odoo import api, fields, models
 
+start_ye = None
+end_ye = None
+
 
 class Sku(models.Model):
     _name = "supplysync.sku"
@@ -24,6 +27,9 @@ class Sku(models.Model):
 
     @api.model
     def run_model(self):
+
+        print('start year ====> ', start_ye)
+        print('end year ====> ', end_ye)
         # Load your data into a pandas dataframe
         df = pd.read_csv("custom/supplysync/models/train.csv")
 
@@ -37,8 +43,8 @@ class Sku(models.Model):
         monthly_data = monthly_data.reset_index()
 
         # Separate data into train (2011 and 2012) and test (2013)
-        train_data = monthly_data[monthly_data['week'] < '2013']
-        test_data = monthly_data[monthly_data['week'] >= '2013']
+        train_data = monthly_data[monthly_data['week'] < start_ye]
+        test_data = monthly_data[monthly_data['week'] >= end_ye]
 
         # Dictionary to store evaluation metrics for each SKU
         evaluation_metrics = {}
@@ -196,38 +202,20 @@ class ForecastConfig(models.Model):
     ]
 
     @api.model
+    def set_config(self, ids):
+        print('button was clicked')
+        record = self.browse(ids)
+        if record:
+            global start_ye, end_ye
+            start_ye = str(record.test_start_year)
+            end_ye = str(record.train_end_year)
+
+    @api.model
     def create(self, vals):
         # First, call the super to create the record
         record = super(ForecastConfig, self).create(vals)
-
-        # Specify the file path where the CSV will be saved
-        file_path = 'custom/supplysync/models/config.csv'  # Assumes the file is in the same directory as this script
-
-        # Open the file and overwrite the existing data
-        with open(file_path, mode='w', newline='') as file:  # Note 'w' mode here
-            writer = csv.writer(file)
-            writer.writerow(['configid', 'test_start_year', 'train_end_year'])  # Headers
-            writer.writerow([record.configid, record.test_start_year, record.train_end_year])
-
+        global start_ye, end_ye
+        start_ye = str(record.test_start_year)
+        end_ye = str(record.train_end_year)
+        print(start_ye, end_ye)
         return record
-
-# class Forecast(models.Model):
-#     _name = "supplysync.forecast"
-#     _description = "SupplySync Forecast"
-#
-#     sku_id = fields.Many2one("supplysync.sku", "SKU")
-#     forecasted_quantity = fields.Integer("Forecasted Quantity")
-#     forecasted_date = fields.Date("Forecasted Date")
-#
-#     @api.depends(
-#         "sku_id",
-#         "forecasted_quantity",
-#         "forecasted_date",
-#     )
-#     def save_forecast(self):
-#         """
-#         This method should save the forecasted data to the database.
-#         """
-#         for _ in self:
-#             # Your saving logic here
-#             pass

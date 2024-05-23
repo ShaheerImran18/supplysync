@@ -11,7 +11,6 @@
         </field>
     </record>
 
-
     <!-- forecast blank structure and action -->
     <record id="action_supplysync_forecast" model="ir.actions.act_window">
         <field name="name">Model configs</field>
@@ -39,6 +38,9 @@
                         <field name="train_end_year" help="Enter the end year as 'yyyy'."/>
                     </group>
                     <button name="%(forecast_action_run_model)d" type="action" string="Run Model"
+                            attrs="{'invisible': [('id', '=', False)]}"/>
+
+                    <button name="set_config" type="object" string="Load Config"
                             attrs="{'invisible': [('id', '=', False)]}"/>
                     <group>
 
