@@ -20,7 +20,7 @@ class Sku(models.Model):
     _description = "SupplySync SKU"
 
     # product input fields
-    sku = fields.Char("Sku")
+    sku = fields.Char("SKU")
     type = fields.Char("Type")
     category_L1 = fields.Char("Category_L1")
     category_L2 = fields.Char("Category_L2")
@@ -29,9 +29,20 @@ class Sku(models.Model):
 
     @api.model
     def run_model(self):
+        # check if configs are set
+        if start_ye is None or end_ye is None:
+            print("No configs found.")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Error',
+                    'message': 'Set model configurations before running.',
+                    'sticky': False,
+                }
+            }
 
-        print('start year ====> ', start_ye)
-        print('end year ====> ', end_ye)
+        print('Model is running.')
         # Load your data into a pandas dataframe
         df = pd.read_csv("custom/supplysync/models/train.csv")
 
@@ -79,10 +90,24 @@ class Sku(models.Model):
             sequence_length = 12
             x_train, y_train = create_sequences(train_normalized, sequence_length)
 
-
             root_path = os.path.join('custom', 'supplysync', 'models')
-            with open(os.path.join(root_path, 'lstm.pickle'), 'rb') as file:
-                model = pickle.load(file)
+            file_path = os.path.join(root_path, 'lstm.pickle')
+
+            # Check if the file exists
+            if os.path.exists(file_path):
+                with open(file_path, 'rb') as file:
+                    model = pickle.load(file)
+            else:
+                print("LSTM pickle not found.")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Error',
+                        'message': 'No model has been trained.',
+                        'sticky': False,
+                    }
+                }
 
             # Forecast using LSTM model
             forecasted_values_lstm = []
@@ -113,8 +138,22 @@ class Sku(models.Model):
             x_test_svm = scaler_svm.transform(x_test_svm)
 
             root_path = os.path.join('custom', 'supplysync', 'models')
-            with open(os.path.join(root_path, 'svm.pickle'), 'rb') as file:
-                svm_model = pickle.load(file)
+            file_path = os.path.join(root_path, 'svm.pickle')
+
+            if os.path.exists(file_path):
+                with open(file_path, 'rb') as file:
+                    svm_model = pickle.load(file)
+            else:
+                print("SVM pickle not found.")
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Error',
+                        'message': 'No model has been trained.',
+                        'sticky': False,
+                    }
+                }
 
             # Forecast using SVM model
             forecasted_values_svm = svm_model.predict(x_test_svm).reshape(-1, 1)
@@ -165,6 +204,15 @@ class Sku(models.Model):
         results_df = pd.DataFrame(results_for_csv)
         results_df.to_csv("custom/supplysync/models/forecasted_results.csv", index=False)
         print("Results saved to custom/supplysync/models/forecasted_results.csv")
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Success',
+                'message': 'Model ran successfully!',
+                'sticky': False,  # If true, the notification will require user interaction to dismiss
+            }
+        }
 
     @api.model
     def import_data_from_csv(self):
@@ -186,35 +234,61 @@ class ForecastConfig(models.Model):
     _name = "supplysync.forecast"
     _description = "Forecast Configuration"
 
-    configid = fields.Integer("Config ID")
-    train_end_year = fields.Integer("Training End Year")
-    test_start_year = fields.Integer("Testing Start Year")
+    configid = fields.Integer("Config ID", required=True)
+    train_end_year = fields.Integer("Training End Year", required=True)
+    train_start_year = fields.Integer("Training Start Year", required=True)
 
     _sql_constraints = [
-        ('configID_unique', 'unique(configid)', 'The Configuration ID must be unique.')
+        ('configID_unique', 'unique(configid)', 'The Configuration ID must be unique.'),
+        ('train_end_year_check', 'CHECK (char_length(train_end_year::text) = 4)',
+         'The Training End Year must be a 4-digit integer.'),
+        ('train_start_year_check', 'CHECK (char_length(train_start_year::text) = 4)',
+         'The Testing Start Year must be a 4-digit integer.')
     ]
 
     @api.model
     def set_config(self, ids):
-        print('button was clicked')
+        print('Configurations loaded successfully!')
         record = self.browse(ids)
         if record:
             global start_ye, end_ye
-            start_ye = str(record.test_start_year)
+            start_ye = str(record.train_start_year)
             end_ye = str(record.train_end_year)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Success',
+                    'message': 'Configurations loaded successfully!',
+                    'sticky': False,  # If true, the notification will require user interaction to dismiss
+                }
+            }
 
     @api.model
     def create(self, vals):
         # First, call the super to create the record
         record = super(ForecastConfig, self).create(vals)
         global start_ye, end_ye
-        start_ye = str(record.test_start_year)
+        start_ye = str(record.train_start_year)
         end_ye = str(record.train_end_year)
         print(start_ye, end_ye)
         return record
 
     @api.model
     def train_model(self, ids):
+        # check if configs are set
+        if start_ye is None or end_ye is None:
+            print("No configs found.")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Error',
+                    'message': 'Training cannot start. Model configurations are not set.',
+                    'sticky': False,
+                }
+            }
+        print("Training has started...")
         # Load your data into a pandas dataframe
         df = pd.read_csv("custom/supplysync/models/train.csv")
 
@@ -291,3 +365,14 @@ class ForecastConfig(models.Model):
             root_path = os.path.join('custom', 'supplysync', 'models')
             with open(os.path.join(root_path, 'svm.pickle'), 'wb+') as file:
                 pickle.dump(model, file)
+
+        print("Model has been trained.")
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Success',
+                'message': 'Model has been trained successfully!',
+                'sticky': False,  # If true, the notification will require user interaction to dismiss
+            }
+        }

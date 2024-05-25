@@ -50,3 +50,7 @@ package.json
 /share/
 /src/
 .venv
+/custom/supplysync/models/train3.csv
+/custom/supplysync/models/train2.csv
+/custom/supplysync/models/train.csv
+/custom/supplysync/models/temp.csv

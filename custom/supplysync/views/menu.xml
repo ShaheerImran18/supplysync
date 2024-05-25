@@ -7,7 +7,7 @@
               sequence="0"/>
 
     <menuitem id="SupplySync_submenu_forecast"
-              name="Forecast"
+              name="Forecasting"
               parent="SupplySync_menu_root"
               action="action_supplysync_sku"
               sequence="1"/>

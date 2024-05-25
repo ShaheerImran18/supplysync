@@ -3,7 +3,7 @@
 
     <!-- sku blank structure and action -->
     <record id="action_supplysync_sku" model="ir.actions.act_window">
-        <field name="name">Bagallery SKU</field>
+        <field name="name">Forecasts</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">supplysync.sku</field>
         <field name="view_mode">tree,form</field>
@@ -70,7 +70,7 @@
         </field>
     </record>
 
-<!-- Scheduled action for auto csv fetch -->
+    <!-- Scheduled action for auto csv fetch -->
     <data noupdate="1">
         <record id="ir_cron_import_sku_csv_job" model="ir.cron">
             <field name="name">Import SKU Data from CSV</field>
@@ -91,7 +91,7 @@
         <record id="ir_cron_model_run_job" model="ir.cron">
             <field name="name">Run Model</field>
             <field name="user_id" ref="base.user_root"/>  <!-- Runs as Administrator -->
-            <field name="active" eval="True"/>  <!-- Cron job is active -->
+            <field name="active" eval="False"/>  <!-- Cron job is deactivated -->
             <field name="model_id" ref="model_supplysync_sku"/>  <!-- Model on which the method is called -->
             <field name="state">code</field>
             <field name="code">model.run_model()</field>
