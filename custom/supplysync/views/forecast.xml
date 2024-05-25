@@ -34,8 +34,8 @@
                 <sheet>
                     <group>
                         <field name="configid" help="Enter the configuration ID."/>
-                        <field name="train_start_year" help="Enter the start year as 'yyyy'."/>
-                        <field name="train_end_year" help="Enter the end year as 'yyyy'."/>
+                        <field name="train_start_date" help="Enter the date 'yyyy-mm-dd'."/>
+                        <field name="train_end_date" help="Enter the date 'yyyy-mm-dd'."/>
                     </group>
 
                     <button name="set_config" type="object" string="Load Config"
@@ -62,8 +62,8 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="configid" widget="integer" options="{'format': 0}"/>
-                <field name="train_start_year" widget="integer" options="{'format': 0}"/>
-                <field name="train_end_year" widget="integer" options="{'format': 0}"/>
+                <field name="train_start_date"/>
+                <field name="train_end_date"/>
             </tree>
         </field>
     </record>
