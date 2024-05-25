@@ -196,8 +196,11 @@ class Sku(models.Model):
 
     @api.model
     def import_data_from_csv(self):
-        # clear existing records
-        self.search([]).unlink()
+        # Check if the table is already populated
+        if self.search_count([]) > 0:
+            print("Records already present")
+            return
+
         with open('custom/supplysync/models/forecasted_results.csv', 'r') as file:
             csv_data = csv.DictReader(file)
             for row in csv_data:
