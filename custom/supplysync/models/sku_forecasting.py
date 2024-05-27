@@ -33,7 +33,7 @@ class Sku(models.Model):
 
     @api.model
     def run_model(self):
-        # start_date_config = self.env["supplysync.forecast"].search([('train_end_date', '!=', False)], order='train_end_date desc', limit=1)
+        # start_date_config = self.env["supplysync.forecast"].search([('train_start_date', '!=', False)], order='train_start_date desc', limit=1)
         # end_date_config = self.env["supplysync.forecast"].search([('train_end_date', '!=', False)], order='train_end_date desc', limit=1)
 
         # check if configs are set
