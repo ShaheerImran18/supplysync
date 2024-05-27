@@ -33,6 +33,9 @@ class Sku(models.Model):
 
     @api.model
     def run_model(self):
+        # start_date_config = self.env["supplysync.forecast"].search([('train_end_date', '!=', False)], order='train_end_date desc', limit=1)
+        # end_date_config = self.env["supplysync.forecast"].search([('train_end_date', '!=', False)], order='train_end_date desc', limit=1)
+
         # check if configs are set
         if start_ye is None or end_ye is None:
             print("No configs found.")
@@ -47,6 +50,11 @@ class Sku(models.Model):
             }
 
         print('Model is running.')
+        # records = self.env["supplysync.sku"].search([]) # fetch all data from sku table
+
+        # fields_to_read = ['sku', 'type', 'category_L1', 'category_L2', 'vendor']
+        # records = self.env["supplysync.sku"].search_read([], fields_to_read) # Fetch only specific fields
+
         # Load your data into a pandas dataframe
         df = pd.read_csv("custom/supplysync/models/train.csv")
 
@@ -145,6 +153,7 @@ class Sku(models.Model):
                     "Vendor": vendor,
                     "Forecasted_Quantity": sku_forecasts[i][0],  # Use integer forecasted quantity
                     "Forecast_Period": forecast_month.strftime('%d/%m/%y')  # Date in dd/mm/yy format
+                    # "Forecast_Period": forecast_month.strftime('%Y-%m-%d')  # Date in yyyy-mm-dd format
                 })
 
         # Create DataFrame for CSV results
@@ -183,6 +192,20 @@ class Sku(models.Model):
                     'forePeriod': forecasted_period,
                     'rank': row['Rank']
                 })
+
+        """ self.search([]).unlink()
+        for _, row in results_df.iterrows():
+            forecasted_period = datetime.strptime(row['Forecast_Period'], '%d/%m/%y').date().strftime('%Y-%m-%d')
+            self.create({
+                    'sku': row['SKU'],
+                    'type': row['Type'],
+                    'category_L1': row['Category_L1'],
+                    'category_L2': row['Category_L2'],
+                    'vendor': row['Vendor'],
+                    'foreQuant': row['Forecasted_Quantity'],
+                    'forePeriod': forecasted_period,
+                    'rank': row['Rank']
+                }) """
 
         return {
             'type': 'ir.actions.client',
@@ -279,6 +302,7 @@ class ForecastConfig(models.Model):
             }
         print("Training has started...")
         # Load your data into a pandas dataframe
+        # records = self.env["supplysync.sku"].search([])
         df = pd.read_csv("custom/supplysync/models/train.csv")
 
         # Convert the 'week' column to datetime format
